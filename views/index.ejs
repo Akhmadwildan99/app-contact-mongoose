@@ -1,0 +1,17 @@
+    <h1>Lagi belajar http nih</h1>
+    <p>Habis ini lanjut belajar express, ok!</p>
+
+    <!--  <% const nama = 'akhmad wildan'  %> 
+    <h2>Hallo: <%= nama %></h2> -->
+
+    <h4>Daftar Kariyawan</h4>
+    <% if (kariyawan.length < 1) { %>
+    <p>Data kariyawan masih kosong</p>
+     
+    <% } %>
+    <% kariyawan.forEach(kar => { %>
+    <ul>
+        <li>nama : <%= kar.nama %></li>
+        <li>nik : <%= kar.nik %></li>
+    </ul>
+    <% }) %>
