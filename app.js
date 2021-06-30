@@ -1,5 +1,6 @@
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
+const methodOverride = require('method-override');
 const{ body, check, validationResult} = require('express-validator');
 
 require('./utils/db');
@@ -17,6 +18,7 @@ app.set('view engine', 'ejs'); // Gunakan ejs
 app.use(expressLayouts); // Third-Party Midleware
 app.use(express.static('public')); // Built-in Midleware
 app.use(express.urlencoded({extended: true})); // Built-in Midleware
+app.use(methodOverride('_method')); // set up method override
 
 // Konfigurasi flash
 app.use(cookieParser('secret'));
@@ -133,6 +135,63 @@ app.post('/contact', [
 //         });
 //     }
 // });
+app.delete('/contact', (req, res) => {
+    Contact.deleteOne({nama: req.body.nama}).then((result)=>{
+        req.flash('msg', 'Data contact bersail dihapus!');
+        res.redirect('/contact');
+    });
+});
+
+// Form ubah contact
+app.get('/contact/edit/:nama', async (req, res)=>{
+    const contact = await Contact.findOne({nama: req.params.nama});
+    res.render('contact-edit',{
+        layout: 'layouts/main-layouts',
+        title: 'Halaman edit contact',
+        contact,
+    });
+});
+
+// Proses ubah contact
+app.put('/contact', [
+    body('nama').custom( async (value, {req})=>{
+        const duplikat = await Contact.findOne({nama: value});
+        if(value !== req.body.oldName && duplikat){
+            throw new Error('Nama contact sudah digunakan!');
+        }
+        return true;
+    }),
+    check('email', 'Email tidak valid!').isEmail(), 
+    check('nohp', 'No HP tidak valid!').isMobilePhone('id-ID')
+    ], 
+    (req, res)=>{
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        // return res.status(400).json({ errors: errors.array() });
+        res.render('contact-edit',{
+            layout: 'layouts/main-layouts',
+            title: 'Halaman tambah contact',
+            errors: errors.array(),
+            contact: req.body,
+        });
+    } else {
+        Contact.updateOne(
+            {_id: req.body._id},
+            {
+                $set: {
+                    nama: req.body.nama,
+                    email: req.body.email,
+                    nohp: req.body.nohp,
+                }
+            }
+        ).then((result)=>{
+            req.flash('msg', 'Data contact bersail diubah!');
+            res.redirect('/contact');
+        });
+        // kirim masage singkat
+    }
+}
+);
 
 // Halaman detail contact
 app.get('/contact/:nama', async (req, res)=>{
