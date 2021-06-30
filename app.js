@@ -121,18 +121,18 @@ app.post('/contact', [
 );
 
 // Proses delete Contact
-app.get('/contact/delete/:nama', async (req, res)=>{
-    const contact = await Contact.findOne({ nama: req.params.nama });
-    if(!contact){
-        res.status(404);
-        res.send('<h1>404</h1>');
-    } else {
-        Contact.deleteOne({_id: contact._id}).then((result)=>{
-            req.flash('msg', 'Data contact bersail dihapus!');
-            res.redirect('/contact');
-        });
-    }
-});
+// app.get('/contact/delete/:nama', async (req, res)=>{
+//     const contact = await Contact.findOne({ nama: req.params.nama });
+//     if(!contact){
+//         res.status(404);
+//         res.send('<h1>404</h1>');
+//     } else {
+//         Contact.deleteOne({_id: contact._id}).then((result)=>{
+//             req.flash('msg', 'Data contact bersail dihapus!');
+//             res.redirect('/contact');
+//         });
+//     }
+// });
 
 // Halaman detail contact
 app.get('/contact/:nama', async (req, res)=>{
