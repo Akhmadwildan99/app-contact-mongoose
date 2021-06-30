@@ -1,5 +1,6 @@
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
+const{ body, check, validationResult} = require('express-validator');
 
 require('./utils/db');
 const Contact = require('./model/contact');
@@ -79,6 +80,58 @@ app.get('/contact', async (req, res)=>{
         contacts,
         msg: req.flash('msg'),
     });
+});
+
+// Halaman Tambah Contact
+app.get('/contact/add', (req, res)=>{
+    res.render('contact-add',{
+        layout: 'layouts/main-layouts',
+        title: 'Halaman tambah contact'
+    });
+});
+
+// Proses Tambah data contact
+app.post('/contact', [
+    body('nama').custom( async (value)=>{
+        const duplikat = await Contact.findOne({ nama: value });
+        if(duplikat){
+            throw new Error('Nama contact sudah digunakan!');
+        }
+        return true;
+    }),
+    check('email', 'Email tidak valid!').isEmail(), 
+    check('nohp', 'No HP tidak valid!').isMobilePhone('id-ID')
+    ], 
+    (req, res)=>{
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        res.render('contact-add',{
+            layout: 'layouts/main-layouts',
+            title: 'Halaman tambah contact',
+            errors: errors.array()
+        });
+    } else {
+        Contact.insertMany(req.body, (error, result)=>{
+            // kirim masage singkat
+            req.flash('msg', 'Data contact bersail ditambahkan!');
+            res.redirect('/contact');
+        });
+    }
+}
+);
+
+// Proses delete Contact
+app.get('/contact/delete/:nama', async (req, res)=>{
+    const contact = await Contact.findOne({ nama: req.params.nama });
+    if(!contact){
+        res.status(404);
+        res.send('<h1>404</h1>');
+    } else {
+        Contact.deleteOne({_id: contact._id}).then((result)=>{
+            req.flash('msg', 'Data contact bersail dihapus!');
+            res.redirect('/contact');
+        });
+    }
 });
 
 // Halaman detail contact
